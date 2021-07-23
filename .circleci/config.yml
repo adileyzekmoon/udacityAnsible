@@ -7,7 +7,7 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run:
+      - run:  |
           aws cloudformation create-stack \
           --stack-name ansibleExercise \
           --template-body template.yml
