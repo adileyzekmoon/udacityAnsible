@@ -97,8 +97,6 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          cat ~/text
-      - run:
           name: clean up old front end
           commands: | 
             aws s3 rm "s3://$(cat text)" --recursive
