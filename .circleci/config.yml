@@ -69,4 +69,5 @@ workflows:
     jobs:
       - create_infrastructure
       # - ssh_ansible
-      - smoke_test
+      - smoke_test_fail_sim
+          requires: [create_infrastructure]
