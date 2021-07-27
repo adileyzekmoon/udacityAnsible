@@ -66,7 +66,7 @@ jobs:
       - run:
           name: create and deploy front end
           command: |
-            aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID:0:7}"
+            aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME=bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
   get_last_deployment_id:
     docker:
       - image: amazon/aws-cli
@@ -94,7 +94,7 @@ jobs:
       - run:
           name: promote to production
           command: |
-            aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}"
+            aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID=bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
   clean_up_old_front_end:
     docker:
       - image: amazon/aws-cli
@@ -109,8 +109,8 @@ jobs:
       - run:
           name: clean up old front end
           command: |
-            aws s3 rm "s3://$(cat output.txt)" --recursive
-            aws cloudformation delete-stack --stack-name "$(cat output.txt)"
+            aws s3 rm "s3://$(cat ~/workspace/output.txt)" --recursive
+            aws cloudformation delete-stack --stack-name "$(cat ~/workspace/output.txt)"
 
       
       
@@ -126,9 +126,10 @@ workflows:
       # - ssh_ansible
       # - smoke_test_fail_sim:
       #     requires: [create_infrastructure]
-      - create_and_deploy_front_end
       - get_last_deployment_id
+      - create_and_deploy_front_end:
+          requires: [get_last_deployment_id]
       - promote_to_production:
-          requires: [create_and_deploy_front_end, get_last_deployment_id]
+          requires: [create_and_deploy_front_end]
       - clean_up_old_front_end:
           requires: [promote_to_production]
