@@ -73,7 +73,7 @@ jobs:
           name: get latest deployment id
           command: |
             aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text > ~/workspace/output.txt
-            aws s3 cp "s3://$(cat ~/workspace/output.txt)/index.html" index.html
+            aws s3 cp "s3://$(cat ~/workspace/output.txt)/index.html" ~/workspace/index.html
       - persist_to_workspace:
           root: ~/workspace
           paths: 
