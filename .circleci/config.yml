@@ -95,6 +95,7 @@ jobs:
           command: |
             aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME=bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
             echo " ${CIRCLE_WORKFLOW_ID:0:7}" >> ~/workspace/index.html
+            cat ~/workspace/index.html
             aws s3 cp ~/workspace/index.html s3://bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
   promote_to_production:
     docker:
