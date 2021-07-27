@@ -6,8 +6,7 @@ commands:
       run: 
         name: destroy environement
         command:  |
-          aws cloudformation delete-stack \
-          --stack-name ansibleExercise 
+          aws cloudformation delete-stack --stack-name ansibleExercise 
         when: on_fail
 jobs:
   create_infrastructure:
