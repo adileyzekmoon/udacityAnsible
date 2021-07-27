@@ -8,6 +8,7 @@ commands:
         command:  |
           aws cloudformation delete-stack \
           --stack-name ansibleExercise 
+        when: on_fail
 jobs:
   create_infrastructure:
     docker:
@@ -58,7 +59,6 @@ jobs:
           command: |
             return 1
       - destroy_environment
-        when: on_fail
       
 
 
