@@ -11,6 +11,22 @@ jobs:
           aws cloudformation deploy \
           --stack-name ansibleExercise \
           --template-file template.yml
+  ssh_ansible:
+    docker:
+      - python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["58:61:bc:84:e9:90:c3:7c:75:3d:c3:c4:0b:1e:96:f7"]
+      - run:
+          name: install dependencies
+          command: |
+            apk add --update ansible
+      - run:
+          name: Configure server
+          command: |
+            ansible-playbook -i inventory main.yml
+      
 
 
 # Orchestrate or schedule a set of jobs
@@ -19,4 +35,5 @@ workflows:
   welcome:
     # Run the welcome/run job in its own container
     jobs:
-      - create_infrastructure
+      # - create_infrastructure
+      - ssh_ansible
