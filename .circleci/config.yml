@@ -66,7 +66,7 @@ jobs:
       - run:
           name: create and deploy front end
           command: |
-            aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID:0:7}"
+            aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID:0:7}"
   get_last_deployment_id:
     docker:
       - image: amazon/aws-cli
@@ -81,11 +81,11 @@ jobs:
       - run:
           name: get latest deployment id
           command: |
-            aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output ~/workspace/text
+            aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text > ~/workspace/output.txt
       - persist_to_workspace:
           root: ~/workspace
           paths: 
-            - text
+            - output.txt
   promote_to_production:
     docker:
       - image: amazon/aws-cli
@@ -109,8 +109,8 @@ jobs:
       - run:
           name: clean up old front end
           command: |
-            aws s3 rm "s3://$(cat text)" --recursive
-            aws cloudformation delete-stack --stack-name "$(cat text)"
+            aws s3 rm "s3://$(cat output.txt)" --recursive
+            aws cloudformation delete-stack --stack-name "$(cat output.txt)"
 
       
       
@@ -129,6 +129,6 @@ workflows:
       - create_and_deploy_front_end
       - get_last_deployment_id
       - promote_to_production:
-          requires: [create_and_deploy_front_end]
+          requires: [create_and_deploy_front_end, get_last_deployment_id]
       - clean_up_old_front_end:
           requires: [promote_to_production]
