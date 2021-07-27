@@ -58,17 +58,6 @@ jobs:
           command: |
             return 1
       - destroy_environment
-  create_and_deploy_front_end:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: create and deploy front end
-          command: |
-            aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME=bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
-            echo "${CIRCLE_WORKFLOW_ID:0:7}" > index.html
-            aws s3 cp index.html s3://bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
   get_last_deployment_id:
     docker:
       - image: amazon/aws-cli
@@ -84,10 +73,25 @@ jobs:
           name: get latest deployment id
           command: |
             aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text > ~/workspace/output.txt
+            aws s3 cp "s3://$(cat ~/workspace/output.txt)/index.html" index.html
       - persist_to_workspace:
           root: ~/workspace
           paths: 
             - output.txt
+            - index.html
+  create_and_deploy_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/workspace
+      - run:
+          name: create and deploy front end
+          command: |
+            aws cloudformation deploy --template-file bucket.yml --stack-name bucket-"${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides NAME=bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
+            echo " ${CIRCLE_WORKFLOW_ID:0:7}" >> ~/workspace/index.html
+            aws s3 cp ~/workspace/index.html s3://bucket-"${CIRCLE_WORKFLOW_ID:0:7}"
   promote_to_production:
     docker:
       - image: amazon/aws-cli
@@ -113,6 +117,7 @@ jobs:
           command: |
             aws s3 rm "s3://$(cat ~/workspace/output.txt)" --recursive
             aws cloudformation delete-stack --stack-name "$(cat ~/workspace/output.txt)"
+            aws cloudfront create-invalidation --distribution-id E9S19KTRQTHYC --paths "/*"
 
       
       
