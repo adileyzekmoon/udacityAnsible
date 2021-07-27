@@ -101,7 +101,7 @@ jobs:
       - run:
           name: clean up old front end
           commands: | 
-            OldPipelineID = `cat text`
+            OldPipelineID=$(cat text)
             aws s3 rm "s3://${OldPipelineID}" --recursive
             aws cloudformation delete-stack --stack-name "${OldPipelineID}"
 
