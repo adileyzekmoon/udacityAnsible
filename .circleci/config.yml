@@ -65,7 +65,7 @@ jobs:
       - checkout
       - run:
           name: create and deploy front end
-          commands: | 
+          commands: |
             aws cloudformation deploy --template-file bucket.yml --stack-name "${CIRCLE_WORKFLOW_ID:0:7}" --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID:0:7}"
   get_last_deployment_id:
     docker:
@@ -74,7 +74,7 @@ jobs:
       - checkout
       - run:
           name: get latest deployment id
-          commands: | 
+          commands: |
             aws cloudformation list-exports --query "Exports[?Name==\`PipelineID\`].Value" --no-paginate --output text
       - persist_to_workspace:
           root: ~/
@@ -87,7 +87,7 @@ jobs:
       - checkout
       - run:
           name: promote to production
-          commands: | 
+          commands: |
             aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}"
   clean_up_old_front_end:
     docker:
@@ -98,7 +98,7 @@ jobs:
           at: ~/
       - run:
           name: clean up old front end
-          commands: | 
+          commands: |
             aws s3 rm "s3://$(cat text)" --recursive
             aws cloudformation delete-stack --stack-name "$(cat text)"
 
